@@ -36,10 +36,10 @@ template <int D, typename E>
 void BaseMultiEdge<D, E>::constructQuadraticForm()
 {
   if (this->robustKernel()) {
-    number_t error = this->chi2();
-    Vector3 rho;
+    double error = this->chi2();
+    Vector3D rho;
     this->robustKernel()->robustify(error, rho);
-    Eigen::Matrix<number_t, D, 1, Eigen::ColMajor> omega_r = - _information * _error;
+    Eigen::Matrix<double, D, 1, Eigen::ColMajor> omega_r = - _information * _error;
     omega_r *= rho[1];
     computeQuadraticForm(this->robustInformation(rho), omega_r);
   } else {
@@ -54,7 +54,7 @@ void BaseMultiEdge<D, E>::linearizeOplus(JacobianWorkspace& jacobianWorkspace)
   for (size_t i = 0; i < _vertices.size(); ++i) {
     OptimizableGraph::Vertex* v = static_cast<OptimizableGraph::Vertex*>(_vertices[i]);
     assert(v->dimension() >= 0);
-    new (&_jacobianOplus[i]) JacobianType(jacobianWorkspace.workspaceForVertex(i), D < 0 ? _dimension : D, v->dimension());
+    new (&_jacobianOplus[i]) JacobianType(jacobianWorkspace.workspaceForVertex(i), D, v->dimension());
   }
   linearizeOplus();
 }
@@ -69,12 +69,10 @@ void BaseMultiEdge<D, E>::linearizeOplus()
   }
 #endif
 
-  const number_t delta = cst(1e-9);
-  const number_t scalar = 1 / (2*delta);
+  const double delta = 1e-9;
+  const double scalar = 1.0 / (2*delta);
   ErrorVector errorBak;
   ErrorVector errorBeforeNumeric = _error;
-
-  dynamic_aligned_buffer<number_t> buffer{ 12 };
 
   for (size_t i = 0; i < _vertices.size(); ++i) {
     //Xi - estimate the jacobian numerically
@@ -85,10 +83,12 @@ void BaseMultiEdge<D, E>::linearizeOplus()
 
     const int vi_dim = vi->dimension();
     assert(vi_dim >= 0);
-
-    number_t* add_vi = buffer.request(vi_dim);
-
-    std::fill(add_vi, add_vi + vi_dim, cst(0.0));
+#ifdef _MSC_VER
+    double* add_vi = new double[vi_dim];
+#else
+    double add_vi[vi_dim];
+#endif
+    std::fill(add_vi, add_vi + vi_dim, 0.0);
     assert(_dimension >= 0);
     assert(_jacobianOplus[i].rows() == _dimension && _jacobianOplus[i].cols() == vi_dim && "jacobian cache dimension does not match");
       _jacobianOplus[i].resize(_dimension, vi_dim);
@@ -110,6 +110,9 @@ void BaseMultiEdge<D, E>::linearizeOplus()
 
       _jacobianOplus[i].col(d) = scalar * errorBak;
     } // end dimension
+#ifdef _MSC_VER
+    delete[] add_vi;
+#endif
   }
   _error = errorBeforeNumeric;
 
@@ -123,7 +126,7 @@ void BaseMultiEdge<D, E>::linearizeOplus()
 }
 
 template <int D, typename E>
-void BaseMultiEdge<D, E>::mapHessianMemory(number_t* d, int i, int j, bool rowMajor)
+void BaseMultiEdge<D, E>::mapHessianMemory(double* d, int i, int j, bool rowMajor)
 {
   int idx = internal::computeUpperTriangleIndex(i, j);
   assert(idx < (int)_hessian.size());
@@ -174,11 +177,11 @@ void BaseMultiEdge<D, E>::computeQuadraticForm(const InformationType& omega, con
     if (istatus) {
       const JacobianType& A = _jacobianOplus[i];
 
-      MatrixX AtO = A.transpose() * omega;
+      MatrixXD AtO = A.transpose() * omega;
       int fromDim = from->dimension();
       assert(fromDim >= 0);
-      Eigen::Map<MatrixX> fromMap(from->hessianData(), fromDim, fromDim);
-      Eigen::Map<VectorX> fromB(from->bData(), fromDim);
+      Eigen::Map<MatrixXD> fromMap(from->hessianData(), fromDim, fromDim);
+      Eigen::Map<VectorXD> fromB(from->bData(), fromDim);
 
       // ii block in the hessian
 #ifdef G2O_OPENMP
@@ -225,10 +228,10 @@ template <typename E>
 void BaseMultiEdge<-1, E>::constructQuadraticForm()
 {
   if (this->robustKernel()) {
-    number_t error = this->chi2();
-    Vector3 rho;
+    double error = this->chi2();
+    Vector3D rho;
     this->robustKernel()->robustify(error, rho);
-    Eigen::Matrix<number_t, Eigen::Dynamic, 1, Eigen::ColMajor> omega_r = - _information * _error;
+    Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor> omega_r = - _information * _error;
     omega_r *= rho[1];
     computeQuadraticForm(this->robustInformation(rho), omega_r);
   } else {
@@ -258,12 +261,10 @@ void BaseMultiEdge<-1, E>::linearizeOplus()
   }
 #endif
 
-  const number_t delta = cst(1e-9);
-  const number_t scalar = 1 / (2*delta);
+  const double delta = 1e-9;
+  const double scalar = 1.0 / (2*delta);
   ErrorVector errorBak;
   ErrorVector errorBeforeNumeric = _error;
-
-  dynamic_aligned_buffer<number_t> buffer{ 12 };
 
   for (size_t i = 0; i < _vertices.size(); ++i) {
     //Xi - estimate the jacobian numerically
@@ -274,10 +275,12 @@ void BaseMultiEdge<-1, E>::linearizeOplus()
 
     const int vi_dim = vi->dimension();
     assert(vi_dim >= 0);
-
-    number_t* add_vi = buffer.request(vi_dim);
-
-    std::fill(add_vi, add_vi + vi_dim, cst(0.0));
+#ifdef _MSC_VER
+    double* add_vi = new double[vi_dim];
+#else
+    double add_vi[vi_dim];
+#endif
+    std::fill(add_vi, add_vi + vi_dim, 0.0);
     assert(_dimension >= 0);
     assert(_jacobianOplus[i].rows() == _dimension && _jacobianOplus[i].cols() == vi_dim && "jacobian cache dimension does not match");
     _jacobianOplus[i].resize(_dimension, vi_dim);
@@ -299,6 +302,9 @@ void BaseMultiEdge<-1, E>::linearizeOplus()
 
       _jacobianOplus[i].col(d) = scalar * errorBak;
     } // end dimension
+#ifdef _MSC_VER
+    delete[] add_vi;
+#endif
   }
   _error = errorBeforeNumeric;
 
@@ -312,7 +318,7 @@ void BaseMultiEdge<-1, E>::linearizeOplus()
 }
 
 template <typename E>
-void BaseMultiEdge<-1, E>::mapHessianMemory(number_t* d, int i, int j, bool rowMajor)
+void BaseMultiEdge<-1, E>::mapHessianMemory(double* d, int i, int j, bool rowMajor)
 {
   int idx = internal::computeUpperTriangleIndex(i, j);
   assert(idx < (int)_hessian.size());
@@ -363,11 +369,11 @@ void BaseMultiEdge<-1, E>::computeQuadraticForm(const InformationType& omega, co
     if (istatus) {
       const JacobianType& A = _jacobianOplus[i];
 
-      MatrixX AtO = A.transpose() * omega;
+      MatrixXD AtO = A.transpose() * omega;
       int fromDim = from->dimension();
       assert(fromDim >= 0);
-      Eigen::Map<MatrixX> fromMap(from->hessianData(), fromDim, fromDim);
-      Eigen::Map<VectorX> fromB(from->bData(), fromDim);
+      Eigen::Map<MatrixXD> fromMap(from->hessianData(), fromDim, fromDim);
+      Eigen::Map<VectorXD> fromB(from->bData(), fromDim);
 
       // ii block in the hessian
 #ifdef G2O_OPENMP

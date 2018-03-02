@@ -311,19 +311,18 @@ int main(int argc, char** argv)
   typedef g2o::LinearSolverPCG<BalBlockSolver::PoseMatrixType> BalLinearSolverPCG;
 
   g2o::SparseOptimizer optimizer;
-  std::unique_ptr<g2o::LinearSolver<BalBlockSolver::PoseMatrixType>> linearSolver;
+  g2o::LinearSolver<BalBlockSolver::PoseMatrixType>* linearSolver = 0;
   if (usePCG) {
     cout << "Using PCG" << endl;
-    linearSolver = g2o::make_unique<BalLinearSolverPCG>();
+    linearSolver = new BalLinearSolverPCG();
   } else {
     cout << "Using Cholesky: " << choleskySolverName << endl;
-    auto cholesky = g2o::make_unique<BalLinearSolver>();
+    BalLinearSolver* cholesky = new BalLinearSolver();
     cholesky->setBlockOrdering(true);
-    linearSolver = std::move(cholesky);
+    linearSolver = cholesky;
   }
-  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
-    g2o::make_unique<BalBlockSolver>(std::move(linearSolver)));
-
+  BalBlockSolver* solver_ptr = new BalBlockSolver(linearSolver);
+  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
   //solver->setUserLambdaInit(1);
   optimizer.setAlgorithm(solver);
   if (statsFilename.size() > 0){

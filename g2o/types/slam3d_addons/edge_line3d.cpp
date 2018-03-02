@@ -24,54 +24,51 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "edge_xyz_prior.h"
-#include <iostream>
+#include "edge_line3d.h"
 
-namespace g2o {
-  using namespace std;
+namespace g2o
+{
 
-  EdgeXYZPrior::EdgeXYZPrior() : BaseUnaryEdge<3, Vector3, VertexPointXYZ>() {
-    information().setIdentity();
+  EdgeLine3D::EdgeLine3D() :
+    BaseBinaryEdge<6, Vector6d, VertexLine3D, VertexLine3D>()
+  {
+    _information.setIdentity();
+    _error.setZero();
   }
 
-  bool EdgeXYZPrior::read(std::istream& is) {
-    // read measurement
-    Vector3 meas;
-    for (int i=0; i<3; i++) is >> meas[i];
-    setMeasurement(meas);
-    // read covariance matrix (upper triangle)
-    if (is.good()) {
-      for ( int i=0; i<information().rows(); i++)
-        for (int j=i; j<information().cols(); j++){
-          is >> information()(i,j);
-          if (i!=j)
-            information()(j,i)=information()(i,j);
-        }
-    }
-    return !is.fail();
-  }
-
-  bool EdgeXYZPrior::write(std::ostream& os) const {
-    for (int i = 0; i<3; i++) os << measurement()[i] << " ";
-    for (int i=0; i<information().rows(); i++)
-      for (int j=i; j<information().cols(); j++) {
-        os << information()(i,j) << " ";
+  bool EdgeLine3D::read(std::istream& is)
+  {
+    Vector6d  v;
+    for (int i = 0; i < 6; ++i)
+      is >> v[i];
+    setMeasurement(v);
+    for (int i = 0; i < 6; ++i)
+      for (int j = i; j < 6; ++j) {
+        is >> information()(i, j);
+        if (i != j)
+          information()(j, i) = information()(i, j);
       }
+    return true;
+  }
+
+  bool EdgeLine3D::write(std::ostream& os) const
+  {
+    for (int i = 0; i < 6; ++i)
+      os << _measurement[i] << " ";
+    for (int i = 0; i < 6; ++i)
+      for (int j = i; j < 6; ++j)
+        os << " " << information()(i, j);
     return os.good();
   }
 
-  void EdgeXYZPrior::computeError() {
-    const VertexPointXYZ* v = static_cast<const VertexPointXYZ*>(_vertices[0]);
-    _error = v->estimate() - _measurement;
-  }
 
-  void EdgeXYZPrior::linearizeOplus(){
-      _jacobianOplusXi = Matrix3::Identity();
+#ifndef NUMERIC_JACOBIAN_TWO_D_TYPES
+  void EdgeLine3D::linearizeOplus()
+  {
+    _jacobianOplusXi=-Matrix6d::Identity();
+    _jacobianOplusXj= Matrix6d::Identity();
   }
+#endif
 
-  bool EdgeXYZPrior::setMeasurementFromState(){
-      const VertexPointXYZ* v = static_cast<const VertexPointXYZ*>(_vertices[0]);
-      _measurement = v->estimate();
-      return true;
-  }
-}
+
+} // end namespace

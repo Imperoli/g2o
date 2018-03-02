@@ -27,58 +27,67 @@
 
 #include "g2o/stuff/macros.h"
 
+#define DIM_TO_SOLVER(p, l) BlockSolver< BlockSolverTraits<p, l> >
+
+#define ALLOC_EIGEN_SPARSE_CHOLESKY(s, p, l, blockorder) \
+  if (1) { \
+    std::cerr << "# Using EigenSparseCholesky poseDim " << p << " landMarkDim " << l << " blockordering " << blockorder << std::endl; \
+    LinearSolverEigen< DIM_TO_SOLVER(p, l)::PoseMatrixType >* linearSolver = new LinearSolverEigen<DIM_TO_SOLVER(p, l)::PoseMatrixType>(); \
+    linearSolver->setBlockOrdering(blockorder); \
+    s = new DIM_TO_SOLVER(p, l)(linearSolver); \
+  } else (void)0
+
 using namespace std;
 
 namespace g2o {
-
-  namespace
-  {
-    template<int p, int l, bool blockorder>
-    std::unique_ptr<BlockSolverBase> AllocateSolver()
-    {
-      std::cerr << "# Using EigenSparseCholesky poseDim " << p << " landMarkDim " << l << " blockordering " << blockorder << std::endl;
-      auto linearSolver = g2o::make_unique<LinearSolverEigen<typename BlockSolverPL<p, l>::PoseMatrixType>>();
-      linearSolver->setBlockOrdering(blockorder);
-      return g2o::make_unique<BlockSolverPL<p, l>>(std::move(linearSolver));
-    }
-  }
 
   /**
    * helper function for allocating
    */
   static OptimizationAlgorithm* createSolver(const std::string& fullSolverName)
   {
-    static const std::map<std::string, std::function<std::unique_ptr<BlockSolverBase>()>> solver_factories{
-      { "var_eigen", &AllocateSolver<-1, -1, true> },
-      { "fix3_2_eigen", &AllocateSolver<3, 2, true> },
-      { "fix6_3_eigen", &AllocateSolver<6, 3, true> },
-      { "fix7_3_eigen", &AllocateSolver<7, 3, true> },
-      { "fix3_2_scalar_eigen", &AllocateSolver<3, 2, false> },
-      { "fix6_3_scalar_eigen", &AllocateSolver<6, 3, false> },
-      { "fix7_3_scalar_eigen", &AllocateSolver<7, 3, false> },
-    };
-
-    string solverName = fullSolverName.substr(3);
-    auto solverf = solver_factories.find(solverName);
-    if (solverf == solver_factories.end())
-      return nullptr;
+    g2o::Solver* s = 0;
 
     string methodName = fullSolverName.substr(0, 2);
+    string solverName = fullSolverName.substr(3);
 
-    if (methodName == "gn")
-    {
-      return new OptimizationAlgorithmGaussNewton(solverf->second());
+    if (solverName == "var_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, -1, -1, true);
     }
-    else if (methodName == "lm")
-    {
-      return new OptimizationAlgorithmLevenberg(solverf->second());
+#if 0
+    else if (solverName == "fix3_2_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 3, 2, true);
     }
-    else if (methodName == "dl")
-    {
-      return new OptimizationAlgorithmDogleg(solverf->second());
+    else if (solverName == "fix6_3_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 6, 3, true);
+    }
+    else if (solverName == "fix7_3_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 7, 3, true);
+    }
+    else if (solverName == "fix3_2_scalar_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 3, 2, false);
+    }
+    else if (solverName == "fix6_3_scalar_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 6, 3, false);
+    }
+    else if (solverName == "fix7_3_scalar_eigen") {
+      ALLOC_EIGEN_SPARSE_CHOLESKY(s, 7, 3, false);
+    }
+#endif
+
+    OptimizationAlgorithm* snl = 0;
+    if (methodName == "gn") {
+      snl = new OptimizationAlgorithmGaussNewton(s);
+    }
+    else if (methodName == "lm") {
+      snl = new OptimizationAlgorithmLevenberg(s);
+    }
+    else if (methodName == "dl") {
+      BlockSolverBase* blockSolver = dynamic_cast<BlockSolverBase*>(s);
+      snl = new OptimizationAlgorithmDogleg(blockSolver);
     }
 
-    return nullptr;
+    return snl;
   }
 
   class EigenSolverCreator : public AbstractOptimizationAlgorithmCreator

@@ -57,7 +57,7 @@ namespace deprecated {
 
 
   bool ParameterCamera::read(std::istream& is) {
-    Vector7 off;
+    Vector7d off;
     for (int i=0; i<7; i++)
       is >> off[i];
     setOffset(SE3Quat(off));
@@ -68,7 +68,7 @@ namespace deprecated {
   }
   
   bool ParameterCamera::write(std::ostream& os) const {
-    Vector7 off = offset().toVector();
+    Vector7d off = offset().toVector();
     for (int i=0; i<7; i++)
       os << off[i] << " ";
     os << _Kcam(0,0) << " ";

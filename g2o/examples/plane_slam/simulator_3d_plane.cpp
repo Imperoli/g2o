@@ -1,29 +1,3 @@
-// g2o - General Graph Optimization
-// Copyright (C) 2011 R. Kuemmerle, G. Grisetti, H. Strasdat, W. Burgard
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above copyright
-//   notice, this list of conditions and the following disclaimer in the
-//   documentation and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-// IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-// PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-// TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #include <fstream>
 #include "g2o/core/sparse_optimizer.h"
 #include "g2o/solvers/pcg/linear_solver_pcg.h"
@@ -43,6 +17,8 @@ using namespace Eigen;
 
 G2O_USE_OPTIMIZATION_LIBRARY(csparse)
 
+//typedef Eigen::Matrix<double, 6,6> Matrix6d; //Avoid ambiguous symbol
+
 double uniform_rand(double lowerBndr, double upperBndr)
 {
   return lowerBndr + ((double) std::rand() / (RAND_MAX + 1.0)) * (upperBndr - lowerBndr);
@@ -59,7 +35,7 @@ double gauss_rand(double sigma)
   return sigma * y * std::sqrt(-2.0 * log(r2) / r2);
 }
 
-Eigen::Isometry3d sample_noise_from_se3(const Vector6& cov ){
+Eigen::Isometry3d sample_noise_from_se3(const Vector6d& cov ){
   double nx=gauss_rand(cov(0));
   double ny=gauss_rand(cov(1));
   double nz=gauss_rand(cov(2));
@@ -133,7 +109,7 @@ struct Robot: public WorldItem {
     if (_planarMotion){
       // add a singleton constraint that locks the position of the robot on the plane
       EdgeSE3Prior* planeConstraint=new EdgeSE3Prior();
-      Matrix6 pinfo = Matrix6::Zero();
+      Matrix6d pinfo = Matrix6d::Zero();
       pinfo(2,2)=1e9;
       planeConstraint->setInformation(pinfo);
       planeConstraint->setMeasurement(Isometry3d::Identity());
@@ -146,7 +122,7 @@ struct Robot: public WorldItem {
       EdgeSE3* e=new EdgeSE3();
       Isometry3d noise=sample_noise_from_se3(_nmovecov);
       e->setMeasurement(delta*noise);
-      Matrix6 m=Matrix6::Identity();
+      Matrix6d m=Matrix6d::Identity();
       for (int i=0; i<6; i++){
 	m(i,i)=1./(_nmovecov(i));
       }
@@ -175,7 +151,7 @@ struct Robot: public WorldItem {
 
   Isometry3d _position;
   SensorVector _sensors;
-  Vector6 _nmovecov;
+  Vector6d _nmovecov;
   bool _planarMotion;
 };
 
@@ -440,7 +416,7 @@ int main (int argc  , char ** argv){
   if (fixSensor) {
     ps->_offsetVertex->setFixed(true);
   } else {
-    Vector6 noffcov;
+    Vector6d noffcov;
     noffcov << 0.1,0.1,0.1,0.5, 0.5, 0.5;
     ps->_offsetVertex->setEstimate(ps->_offsetVertex->estimate() * sample_noise_from_se3(noffcov));
     ps->_offsetVertex->setFixed(false);

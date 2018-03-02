@@ -38,7 +38,7 @@
 namespace g2o {
 
   VertexPointXY::VertexPointXY() :
-    BaseVertex<2, Vector2>()
+    BaseVertex<2, Vector2D>()
   {
     _estimate.setZero();
   }

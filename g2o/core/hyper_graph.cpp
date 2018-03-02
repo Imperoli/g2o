@@ -26,8 +26,6 @@
 
 #include "hyper_graph.h"
 
-#include "ownership.h"
-
 #include <assert.h>
 #include <queue>
 
@@ -58,9 +56,13 @@ namespace g2o {
   {
   }
 
-  int HyperGraph::Edge::numUndefinedVertices() const
-  {
-    return std::count_if(_vertices.begin(), _vertices.end(), [](const Vertex* ptr) { return ptr == nullptr; });
+  int HyperGraph::Edge::numUndefinedVertices() const{
+    int undefined=0;
+    for (size_t i=0; i<_vertices.size(); i++){
+      if (!_vertices[i])
+	undefined++;
+    }
+    return undefined;
   }
 
   void HyperGraph::Edge::resize(size_t size)
@@ -77,7 +79,7 @@ namespace g2o {
   {
     VertexIDMap::iterator it=_vertices.find(id);
     if (it==_vertices.end())
-      return nullptr;
+      return 0;
     return it->second;
   }
 
@@ -85,14 +87,17 @@ namespace g2o {
   {
     VertexIDMap::const_iterator it=_vertices.find(id);
     if (it==_vertices.end())
-      return nullptr;
+      return 0;
     return it->second;
   }
 
   bool HyperGraph::addVertex(Vertex* v)
   {
-    auto result = _vertices.insert(std::make_pair(v->id(), v));
-    return result.second;
+    Vertex* vn=vertex(v->id());
+    if (vn)
+      return false;
+    _vertices.insert( std::make_pair(v->id(),v) );
+    return true;
   }
 
   /**
@@ -112,17 +117,13 @@ namespace g2o {
   bool HyperGraph::addEdge(Edge* e)
   {
     std::pair<EdgeSet::iterator, bool> result = _edges.insert(e);
-    if (!result.second)
+    if (! result.second)
       return false;
-
-    for (Vertex* v : e->vertices())
-    {
+    for (std::vector<Vertex*>::iterator it = e->vertices().begin(); it != e->vertices().end(); ++it) {
+      Vertex* v = *it;
       if (v)
-      {
-        v->edges().insert(e);
-      }
+	v->edges().insert(e);
     }
-
     return true;
   }
 
@@ -198,7 +199,7 @@ namespace g2o {
       }
     }
     _vertices.erase(it);
-    release(v);
+    delete v;
     return true;
   }
 
@@ -216,7 +217,8 @@ namespace g2o {
       assert(it!=v->edges().end());
       v->edges().erase(it);
     }
-    release(e);
+
+    delete e;
     return true;
   }
 
@@ -226,13 +228,10 @@ namespace g2o {
 
   void HyperGraph::clear()
   {
-#if G2O_DELETE_IMPLICITLY_OWNED_OBJECTS
     for (VertexIDMap::iterator it=_vertices.begin(); it!=_vertices.end(); ++it)
       delete (it->second);
     for (EdgeSet::iterator it=_edges.begin(); it!=_edges.end(); ++it)
       delete (*it);
-#endif
-
     _vertices.clear();
     _edges.clear();
   }

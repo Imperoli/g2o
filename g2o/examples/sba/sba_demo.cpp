@@ -145,27 +145,30 @@ int main(int argc, const char* argv[])
 
   g2o::SparseOptimizer optimizer;
   optimizer.setVerbose(false);
-  std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver;
+  g2o::BlockSolver_6_3::LinearSolverType * linearSolver;
   if (DENSE)
   {
-    linearSolver = g2o::make_unique<g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>>();
-    cerr << "Using DENSE" << endl;
+        linearSolver= new g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>();
+		cerr << "Using DENSE" << endl;
   }
   else
   {
 #ifdef G2O_HAVE_CHOLMOD
 	cerr << "Using CHOLMOD" << endl;
-    linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
+    linearSolver = new g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>();
 #elif defined G2O_HAVE_CSPARSE
-    linearSolver = g2o::make_unique<g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>>();
+    linearSolver = new g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>();
 	cerr << "Using CSPARSE" << endl;
 #else
 #error neither CSparse nor Cholmod are available
 #endif
   }
 
-  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
-    g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver)));
+
+  g2o::BlockSolver_6_3 * solver_ptr
+      = new g2o::BlockSolver_6_3(linearSolver);
+
+  g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
 
   optimizer.setAlgorithm(solver);
 

@@ -24,27 +24,6 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-namespace {
-
-struct QuadraticFormLock {
-  QuadraticFormLock(OptimizableGraph::Vertex& vertex) : _vertex(vertex) {
-#ifdef G2O_OPENMP
-    _vertex.lockQuadraticForm();
-#endif
-  }
-
-  ~QuadraticFormLock() {
-#ifdef G2O_OPENMP
-    _vertex.unlockQuadraticForm();
-#endif
-  }
-
-private:
-  OptimizableGraph::Vertex& _vertex;
-};
-
-} // anonymous namespace
-
 template <int D, typename E, typename VertexXiType, typename VertexXjType>
 OptimizableGraph::Vertex* BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::createFrom(){
   return createVertex(0);
@@ -68,7 +47,9 @@ OptimizableGraph::Vertex* BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::crea
 template <int D, typename E, typename VertexXiType, typename VertexXjType>
 void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::resize(size_t size)
 {
-  assert(size == 2 && "attempting to resize a binary edge");
+  if (size != 2) {
+    std::cerr << "WARNING, attempting to resize binary edge " << BaseEdge<D, E>::id() << " to " << size << std::endl;
+  }
   BaseEdge<D, E>::resize(size);
 }
 
@@ -94,35 +75,31 @@ void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::constructQuadraticForm()
   bool toNotFixed = !(to->fixed());
 
   if (fromNotFixed || toNotFixed) {
+#ifdef G2O_OPENMP
+    from->lockQuadraticForm();
+    to->lockQuadraticForm();
+#endif
     const InformationType& omega = _information;
-    Eigen::Matrix<number_t, D, 1, Eigen::ColMajor> omega_r = - omega * _error;
+    Eigen::Matrix<double, D, 1, Eigen::ColMajor> omega_r = - omega * _error;
     if (this->robustKernel() == 0) {
       if (fromNotFixed) {
-        Eigen::Matrix<number_t, VertexXiType::Dimension, D, Eigen::ColMajor> AtO = A.transpose() * omega;
-
-        {
-          QuadraticFormLock lck(*from);
-
-          from->b().noalias() += A.transpose() * omega_r;
-          from->A().noalias() += AtO*A;
-        }
-
+        Eigen::Matrix<double, VertexXiType::Dimension, D, Eigen::ColMajor> AtO = A.transpose() * omega;
+        from->b().noalias() += A.transpose() * omega_r;
+        from->A().noalias() += AtO*A;
         if (toNotFixed ) {
           if (_hessianRowMajor) // we have to write to the block as transposed
             _hessianTransposed.noalias() += B.transpose() * AtO.transpose();
           else
             _hessian.noalias() += AtO * B;
         }
-      }
+      } 
       if (toNotFixed) {
-        QuadraticFormLock lck(*to);
-
         to->b().noalias() += B.transpose() * omega_r;
         to->A().noalias() += B.transpose() * omega * B;
       }
     } else { // robust (weighted) error according to some kernel
-      number_t error = this->chi2();
-      Vector3 rho;
+      double error = this->chi2();
+      Vector3D rho;
       this->robustKernel()->robustify(error, rho);
       InformationType weightedOmega = this->robustInformation(rho);
       //std::cout << PVAR(rho.transpose()) << std::endl;
@@ -130,35 +107,32 @@ void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::constructQuadraticForm()
 
       omega_r *= rho[1];
       if (fromNotFixed) {
-        {
-          QuadraticFormLock lck(*from);
-
-          from->b().noalias() += A.transpose() * omega_r;
-          from->A().noalias() += A.transpose() * weightedOmega * A;
-        }
-
+        from->b().noalias() += A.transpose() * omega_r;
+        from->A().noalias() += A.transpose() * weightedOmega * A;
         if (toNotFixed ) {
           if (_hessianRowMajor) // we have to write to the block as transposed
             _hessianTransposed.noalias() += B.transpose() * weightedOmega * A;
           else
             _hessian.noalias() += A.transpose() * weightedOmega * B;
         }
-      }
+      } 
       if (toNotFixed) {
-        QuadraticFormLock lck(*to);
-
         to->b().noalias() += B.transpose() * omega_r;
         to->A().noalias() += B.transpose() * weightedOmega * B;
       }
     }
+#ifdef G2O_OPENMP
+    to->unlockQuadraticForm();
+    from->unlockQuadraticForm();
+#endif
   }
 }
 
 template <int D, typename E, typename VertexXiType, typename VertexXjType>
 void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::linearizeOplus(JacobianWorkspace& jacobianWorkspace)
 {
-  new (&_jacobianOplusXi) JacobianXiOplusType(jacobianWorkspace.workspaceForVertex(0), D < 0 ? _dimension : D, Di);
-  new (&_jacobianOplusXj) JacobianXjOplusType(jacobianWorkspace.workspaceForVertex(1), D < 0 ? _dimension : D, Dj);
+  new (&_jacobianOplusXi) JacobianXiOplusType(jacobianWorkspace.workspaceForVertex(0), D, Di);
+  new (&_jacobianOplusXj) JacobianXjOplusType(jacobianWorkspace.workspaceForVertex(1), D, Dj);
   linearizeOplus();
 }
 
@@ -174,16 +148,20 @@ void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::linearizeOplus()
   if (!iNotFixed && !jNotFixed)
     return;
 
-  const number_t delta = cst(1e-9);
-  const number_t scalar = 1 / (2*delta);
+#ifdef G2O_OPENMP
+  vi->lockQuadraticForm();
+  vj->lockQuadraticForm();
+#endif
+
+  const double delta = 1e-9;
+  const double scalar = 1.0 / (2*delta);
   ErrorVector errorBak;
   ErrorVector errorBeforeNumeric = _error;
 
   if (iNotFixed) {
-    QuadraticFormLock lck(*vi);
     //Xi - estimate the jacobian numerically
-    number_t add_vi[VertexXiType::Dimension] = {};
-
+    double add_vi[VertexXiType::Dimension];
+    std::fill(add_vi, add_vi + VertexXiType::Dimension, 0.0);
     // add small step along the unit vector in each dimension
     for (int d = 0; d < VertexXiType::Dimension; ++d) {
       vi->push();
@@ -205,10 +183,9 @@ void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::linearizeOplus()
   }
 
   if (jNotFixed) {
-    QuadraticFormLock lck(*vj);
     //Xj - estimate the jacobian numerically
-    number_t add_vj[VertexXjType::Dimension] = {};
-
+    double add_vj[VertexXjType::Dimension];
+    std::fill(add_vj, add_vj + VertexXjType::Dimension, 0.0);
     // add small step along the unit vector in each dimension
     for (int d = 0; d < VertexXjType::Dimension; ++d) {
       vj->push();
@@ -230,10 +207,14 @@ void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::linearizeOplus()
   } // end dimension
 
   _error = errorBeforeNumeric;
+#ifdef G2O_OPENMP
+  vj->unlockQuadraticForm();
+  vi->unlockQuadraticForm();
+#endif
 }
 
 template <int D, typename E, typename VertexXiType, typename VertexXjType>
-void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::mapHessianMemory(number_t* d, int i, int j, bool rowMajor)
+void BaseBinaryEdge<D, E, VertexXiType, VertexXjType>::mapHessianMemory(double* d, int i, int j, bool rowMajor)
 {
   (void) i; (void) j;
   //assert(i == 0 && j == 1);

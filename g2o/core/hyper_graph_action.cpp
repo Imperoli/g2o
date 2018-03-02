@@ -159,10 +159,9 @@ namespace g2o {
 
   HyperGraphActionLibrary::~HyperGraphActionLibrary()
   {
-    // memory is freed by Proxy
-    //for (HyperGraphElementAction::ActionMap::iterator it = _actionMap.begin(); it != _actionMap.end(); ++it) {
-      //delete it->second;
-    //}
+    for (HyperGraphElementAction::ActionMap::iterator it = _actionMap.begin(); it != _actionMap.end(); ++it) {
+      delete it->second;
+    }
   }
   
   HyperGraphElementAction* HyperGraphActionLibrary::actionByName(const std::string& name)
