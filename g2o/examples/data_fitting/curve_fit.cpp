@@ -45,7 +45,7 @@ using namespace std;
 class VertexParams : public g2o::BaseVertex<3, Eigen::Vector3d>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexParams()
     {
     }

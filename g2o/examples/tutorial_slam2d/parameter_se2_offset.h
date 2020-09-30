@@ -37,7 +37,7 @@ namespace g2o {
     class G2O_TUTORIAL_SLAM2D_API ParameterSE2Offset: public Parameter
     {
       public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         ParameterSE2Offset();
 
         void setOffset(const SE2& offset = SE2());
@@ -56,7 +56,7 @@ namespace g2o {
     class G2O_TUTORIAL_SLAM2D_API CacheSE2Offset: public Cache
     {
       public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         const SE2& w2n() const { return _w2n;}
         const SE2& n2w() const { return _n2w;}

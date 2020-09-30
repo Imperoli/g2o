@@ -50,7 +50,7 @@ namespace g2o {
   class G2O_TYPES_SLAM3D_API VertexSE3 : public BaseVertex<6, Isometry3D>
   {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
       static const int orthogonalizeAfter = 1000; //< orthogonalize the rotation matrix after N updates
 

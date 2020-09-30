@@ -43,7 +43,7 @@ namespace g2o {
   /*Using G2O_TYPES_SLAM3D_ADDONS_API here causes Compiler Error C2487 on MSVC*/
   class Line3D : public Vector6d{
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       G2O_TYPES_SLAM3D_ADDONS_API friend Line3D operator*(const Isometry3D& t, const Line3D& line);
       Line3D(){
         *this << 0., 0., 0., 1., 0., 0.;

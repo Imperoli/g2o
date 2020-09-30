@@ -51,7 +51,7 @@ namespace g2o {
          */
         struct G2O_TUTORIAL_SLAM2D_API Landmark
         {
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
           int id;
           Eigen::Vector2d truePose;
           Eigen::Vector2d simulatedPose;
@@ -66,7 +66,7 @@ namespace g2o {
          */
         struct G2O_TUTORIAL_SLAM2D_API GridPose
         {
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
           int id;
           SE2 truePose;
           SE2 simulatorPose;
@@ -84,7 +84,7 @@ namespace g2o {
           SE2 trueTransf;
           SE2 simulatorTransf;
           Eigen::Matrix3d information;
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
         typedef std::vector<GridEdge, Eigen::aligned_allocator<GridEdge> >  GridEdgeVector;
 
@@ -95,7 +95,7 @@ namespace g2o {
           Eigen::Vector2d trueMeas;
           Eigen::Vector2d simulatorMeas;
           Eigen::Matrix2d information;
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
         typedef std::vector<LandmarkEdge, Eigen::aligned_allocator<LandmarkEdge> >  LandmarkEdgeVector;
 

@@ -39,7 +39,7 @@ namespace g2o {
    */
   class G2O_TYPES_SLAM2D_API SE2 {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       SE2():_R(0),_t(0,0){}
 
       SE2(const Isometry2D& iso): _R(0), _t(iso.translation()){

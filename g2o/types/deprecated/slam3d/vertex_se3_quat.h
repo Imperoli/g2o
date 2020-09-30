@@ -45,7 +45,7 @@ namespace deprecated {
 class G2O_DEPRECATED_TYPES_SLAM3D_API VertexSE3 : public BaseVertex<6, SE3Quat>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexSE3();
 
     virtual void setToOriginImpl() {

@@ -41,7 +41,7 @@ namespace g2o {
     public:
       typedef std::vector<Vector2F, Eigen::aligned_allocator<Vector2F> > myVector2fVector;
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       VertexEllipse();
       ~VertexEllipse();
 

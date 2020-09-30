@@ -45,7 +45,7 @@ namespace g2o {
   class G2O_TYPES_SLAM3D_API ParameterSE3Offset: public Parameter
   {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       ParameterSE3Offset();
 
       virtual bool read(std::istream& is);
@@ -73,7 +73,7 @@ namespace g2o {
    */
   class G2O_TYPES_SLAM3D_API CacheSE3Offset: public Cache {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       CacheSE3Offset();
       virtual void updateImpl();
 

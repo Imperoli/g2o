@@ -15,7 +15,7 @@ namespace g2o{
       unsigned int _observedPoints;
 
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       EdgeSE3LotsOfXYZ();
 
       void setDimension(int dimension_){

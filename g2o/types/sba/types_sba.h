@@ -71,7 +71,7 @@ class G2O_TYPES_SBA_API VertexIntrinsics : public BaseVertex<4, Eigen::Matrix<do
   class G2O_TYPES_SBA_API VertexCam : public BaseVertex<6, SBACam>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexCam();
 
     virtual bool read(std::istream& is);
@@ -285,7 +285,7 @@ class G2O_TYPES_SBA_API VertexIntrinsics : public BaseVertex<4, Eigen::Matrix<do
  class G2O_TYPES_SBA_API EdgeSBACam : public BaseBinaryEdge<6, SE3Quat, VertexCam, VertexCam>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     EdgeSBACam();
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;

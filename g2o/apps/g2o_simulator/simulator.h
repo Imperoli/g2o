@@ -57,7 +57,7 @@ class G2O_SIMULATOR_API BaseWorldObject{
 template <class VertexType_>
 class WorldObject: public BaseWorldObject, VertexType_{
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     typedef VertexType_ VertexType;
     typedef typename VertexType_::EstimateType EstimateType;
     WorldObject(World* world_=0): BaseWorldObject(world_){
@@ -94,7 +94,7 @@ class G2O_SIMULATOR_API BaseRobot {
 template <class RobotPoseObject>
 class Robot: public BaseRobot{
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     typedef RobotPoseObject PoseObject;
     typedef std::list<PoseObject*> TrajectoryType;
     typedef typename PoseObject::VertexType VertexType;
@@ -142,7 +142,7 @@ class G2O_SIMULATOR_API BaseSensor{
 template <class RobotType_, class EdgeType_>
 class UnarySensor: public BaseSensor {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     typedef RobotType_ RobotType;
     typedef typename RobotType::PoseObject PoseObject;
     typedef typename RobotType::TrajectoryType TrajectoryType;
@@ -204,7 +204,7 @@ class UnarySensor: public BaseSensor {
 template <class RobotType_, class EdgeType_, class WorldObjectType_>
 class BinarySensor: public BaseSensor {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     typedef RobotType_ RobotType;
     typedef typename RobotType::PoseObject PoseObject;
     typedef typename RobotType::TrajectoryType TrajectoryType;

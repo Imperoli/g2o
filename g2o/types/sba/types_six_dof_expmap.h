@@ -43,7 +43,7 @@ typedef Eigen::Matrix<double, 6, 6, Eigen::ColMajor> Matrix6d;
 class G2O_TYPES_SBA_API CameraParameters : public g2o::Parameter
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     CameraParameters();
 
     CameraParameters(double focal_length,
@@ -108,7 +108,7 @@ public:
  */
 class G2O_TYPES_SBA_API EdgeSE3Expmap : public BaseBinaryEdge<6, SE3Quat, VertexSE3Expmap, VertexSE3Expmap>{
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       EdgeSE3Expmap();
 
     bool read(std::istream& is);
@@ -130,7 +130,7 @@ class G2O_TYPES_SBA_API EdgeSE3Expmap : public BaseBinaryEdge<6, SE3Quat, Vertex
 
 class G2O_TYPES_SBA_API EdgeProjectXYZ2UV : public  BaseBinaryEdge<2, Vector2D, VertexSBAPointXYZ, VertexSE3Expmap>{
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     EdgeProjectXYZ2UV();
 
@@ -178,7 +178,7 @@ public:
 // U: right u
 class G2O_TYPES_SBA_API EdgeProjectXYZ2UVU : public  BaseBinaryEdge<3, Vector3D, VertexSBAPointXYZ, VertexSE3Expmap>{
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     EdgeProjectXYZ2UVU();
 

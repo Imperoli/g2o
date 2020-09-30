@@ -65,7 +65,7 @@ using namespace Eigen;
 class VertexCameraBAL : public BaseVertex<9, Eigen::VectorXd>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexCameraBAL()
     {
     }
@@ -102,7 +102,7 @@ class VertexCameraBAL : public BaseVertex<9, Eigen::VectorXd>
 class VertexPointBAL : public BaseVertex<3, Eigen::Vector3d>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexPointBAL()
     {
     }
@@ -156,7 +156,7 @@ class VertexPointBAL : public BaseVertex<3, Eigen::Vector3d>
 class EdgeObservationBAL : public BaseBinaryEdge<2, Vector2d, VertexCameraBAL, VertexPointBAL>
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     EdgeObservationBAL()
     {
     }

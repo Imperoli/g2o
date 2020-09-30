@@ -43,7 +43,7 @@ namespace g2o {
   // first two args are the measurement type, second two the connection classes
   class G2O_TYPES_SLAM3D_API EdgeSE3Offset : public EdgeSE3 {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       EdgeSE3Offset();
       virtual bool read(std::istream& is);
       virtual bool write(std::ostream& os) const;
